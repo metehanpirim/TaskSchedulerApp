@@ -12,6 +12,7 @@ namespace TaskSchedulerApp.Tasks
     {
         private readonly BackupService _backupService;
         private readonly string _sourceFolderPath;
+        private readonly string _backupFolderPath;
         private readonly int _intervalInMinutes;
 
         /// <summary>
@@ -21,12 +22,13 @@ namespace TaskSchedulerApp.Tasks
         /// <param name="backupService">The service responsible for backups.</param>
         /// <param name="sourceFolderPath">The folder to back up.</param>
         /// <param name="intervalInMinutes">The backup interval in minutes.</param>
-        public BackupTask(string name, BackupService backupService, string sourceFolderPath, int intervalInMinutes)
+        public BackupTask(string name, BackupService backupService, string sourceFolderPath, string backupFolderPath, int intervalInMinutes)
             : base(name)
         {
             _backupService = backupService;
             _sourceFolderPath = sourceFolderPath;
             _intervalInMinutes = intervalInMinutes;
+            _backupFolderPath = backupFolderPath;
         }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace TaskSchedulerApp.Tasks
 
         public override string GetDetails()
         {
-            return base.GetDetails() + $", Source: {_sourceFolderPath}, Interval: {_intervalInMinutes} minutes";
+            return base.GetDetails() + $", Source: {_sourceFolderPath}, Target: {_backupFolderPath}, Interval: {_intervalInMinutes} minutes";
         }
     }
 }

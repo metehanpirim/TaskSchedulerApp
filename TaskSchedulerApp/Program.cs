@@ -1,38 +1,12 @@
 ﻿using System;
-using TaskSchedulerApp.Commands;
-using TaskSchedulerApp.Core;
-using TaskSchedulerApp.Services;
-using TaskSchedulerApp.Utilities;
+using TaskSchedulerApp.Initializers;
 
 class Program
 {
     static void Main(string[] args)
     {
-        // Initialize MailService with Gmail SMTP configuration
-        var mailService = new MailService("smtp.gmail.com", 587, "dptaskscheduler@gmail.com", "xdsiturnhvvviibk");
-
-        // Initialize services
-        var backupService = new BackupService("Backups");
-        var fileService = new FileService();
-        var resourceMonitorService = new ResourceMonitorService(mailService);
-
-        // Attach observers to services
-        var consoleNotifier = new ConsoleNotifier();
-        var mailNotifier = new MailNotifier(mailService, "recipient@example.com");
-
-        backupService.AddObserver(consoleNotifier);
-        backupService.AddObserver(mailNotifier);
-
-        fileService.AddObserver(consoleNotifier);
-
-        // Initialize TaskManager
-        var taskManager = new TaskManager();
-
-        // Initialize commands
-        var backupCommand = new BackupCommand(taskManager, backupService);
-        var deleteFilesCommand = new DeleteFilesCommand(taskManager, fileService);
-        var resourceMonitorCommand = new ResourceMonitorCommand(taskManager, resourceMonitorService);
-        var reminderCommand = new ReminderCommand(taskManager, mailService);
+        // Initialize the application
+        var appInitializer = new AppInitializer();
 
         // Main menu loop
         while (true)
@@ -53,36 +27,36 @@ class Program
             {
                 case "1":
                     Console.WriteLine("\n--- Create a Backup Task ---");
-                    backupCommand.Execute();
+                    appInitializer.BackupCommand.Execute();
                     break;
 
                 case "2":
                     Console.WriteLine("\n--- Create a Delete Files Task ---");
-                    deleteFilesCommand.Execute();
+                    appInitializer.DeleteFilesCommand.Execute();
                     break;
 
                 case "3":
                     Console.WriteLine("\n--- Create a Resource Monitoring Task ---");
-                    resourceMonitorCommand.Execute();
+                    appInitializer.ResourceMonitorCommand.Execute();
                     break;
 
                 case "4":
                     Console.WriteLine("\n--- Create a Reminder Task ---");
-                    reminderCommand.Execute();
+                    appInitializer.ReminderCommand.Execute();
                     break;
 
                 case "5":
                     Console.WriteLine("\n--- List of Tasks ---");
-                    taskManager.ListTasks();
+                    appInitializer.TaskManager.ListTasks();
                     break;
 
                 case "6":
                     Console.WriteLine("\n--- Remove a Task ---");
-                    taskManager.ListTasks();
+                    appInitializer.TaskManager.ListTasks();
                     Console.Write("Enter the task number to remove: ");
                     if (int.TryParse(Console.ReadLine(), out int taskNumber))
                     {
-                        taskManager.RemoveTask(taskNumber - 1);
+                        appInitializer.TaskManager.RemoveTask(taskNumber - 1);
                     }
                     else
                     {

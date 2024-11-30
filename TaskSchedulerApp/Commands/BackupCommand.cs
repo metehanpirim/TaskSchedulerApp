@@ -21,20 +21,44 @@ namespace TaskSchedulerApp.Commands
 
         public void Execute()
         {
+            // Get the source folder path from the user
             Console.Write("Enter the source folder path to back up: ");
-            string? sourceFolderPath = Console.ReadLine();
+            string? sourceFolderPath = Console.ReadLine()?.Trim();
 
-            Console.Write("Enter backup interval in minutes: ");
-            if (!int.TryParse(Console.ReadLine(), out int intervalInMinutes))
+            // Validate the source folder path
+            if (string.IsNullOrWhiteSpace(sourceFolderPath) || !System.IO.Directory.Exists(sourceFolderPath))
             {
-                Console.WriteLine("Invalid input. Backup task creation aborted.");
+                Console.WriteLine("Invalid source folder path. Task creation aborted.");
                 return;
             }
 
-            var task = new BackupTask("Backup Task", _backupService, sourceFolderPath!, intervalInMinutes);
+            // Get the backup folder path from the user
+            Console.Write("Enter the backup folder path to store backups: ");
+            string? backupFolderPath = Console.ReadLine()?.Trim();
+
+            // Validate the backup folder path
+            if (string.IsNullOrWhiteSpace(backupFolderPath))
+            {
+                Console.WriteLine("Invalid backup folder path. Task creation aborted.");
+                return;
+            }
+
+            // Update BackupService with the new backup folder path
+            _backupService.SetBackupFolderPath(backupFolderPath);
+
+            // Get the backup interval in minutes
+            Console.Write("Enter backup interval in minutes: ");
+            if (!int.TryParse(Console.ReadLine(), out int intervalInMinutes) || intervalInMinutes <= 0)
+            {
+                Console.WriteLine("Invalid interval. Task creation aborted.");
+                return;
+            }
+
+            // Create and start the backup task
+            var task = new BackupTask("Backup Task", _backupService, sourceFolderPath, backupFolderPath, intervalInMinutes);
             _taskManager.AddTask(task);
 
-            // Run StartTask in a background thread
+            // Start the task in the background
             Task.Run(() => task.StartTask());
         }
     }

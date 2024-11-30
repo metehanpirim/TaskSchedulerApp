@@ -15,6 +15,7 @@
     <Compile Include="Core\ObserverBase.cs" />
     <Compile Include="Core\TaskBase.cs" />
     <Compile Include="Core\TaskManager.cs" />
+    <Compile Include="Initializers\AppInitializer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Tasks\BackupTask.cs" />
     <Compile Include="Tasks\DeleteFilesTask.cs" />
