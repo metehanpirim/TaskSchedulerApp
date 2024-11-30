@@ -9,7 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Core\CommandHandler.cs" />
+    <Compile Include="Core\ICommand.cs" />
+    <Compile Include="Core\ObservableBase.cs" />
+    <Compile Include="Core\ObserverBase.cs" />
+    <Compile Include="Core\TaskBase.cs" />
+    <Compile Include="Core\TaskManager.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Tasks\BackupTask.cs" />
+    <Compile Include="Tasks\DeleteFilesTask.cs" />
+    <Compile Include="Tasks\ReminderTask.cs" />
+    <Compile Include="Tasks\ResourceMonitorTask.cs" />
     <Compile Include="Commands\*.cs" />
     <Compile Include="Services\*.cs" />
     <Compile Include="Utilities\*.cs" />
@@ -17,6 +27,14 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

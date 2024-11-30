@@ -1,62 +1,59 @@
+using System;
+using System.IO;
+using Newtonsoft.Json;
+
 namespace TaskSchedulerApp.Utilities
 {
-    using Newtonsoft.Json;
-
     /// <summary>
-    /// JSON tabanlı konfigürasyon dosyasını okuyan ve ayarları sağlayan sınıf.
+    /// Singleton class for managing configuration settings from a JSON file.
     /// </summary>
     public class Configuration
     {
-        private readonly dynamic? _settings; // Ayarların JSON'dan yüklenen dinamik objesi
+        private static Configuration? _instance;
+        private readonly dynamic? _settings;
 
-        public Configuration(string configFilePath = "appsettings.json")
+        /// <summary>
+        /// Private constructor to load settings from the JSON configuration file.
+        /// </summary>
+        /// <param name="configFilePath">Path to the configuration file.</param>
+        private Configuration(string configFilePath = "appsettings.json")
         {
             try
             {
-                var json = File.ReadAllText(configFilePath);
+                // Get the current working directory
+                string currentDirectory = Directory.GetCurrentDirectory();
+
+                // Combine directory path with the config file name
+                string fullPath = Path.Combine(currentDirectory, configFilePath);
+
+                // Read and deserialize the JSON configuration
+                var json = File.ReadAllText(fullPath);
                 _settings = JsonConvert.DeserializeObject<dynamic>(json);
             }
             catch (Exception ex)
             {
-                Logger.Log($"Ayarlar yüklenirken bir hata oluştu: {ex.Message}");
-                _settings = null; // Varsayılan olarak null atanır
+                Logger.LogError($"Error loading configuration: {ex.Message}");
+                _settings = null;
             }
         }
 
         /// <summary>
-        /// JSON'daki yollarla ilgili ayarları döndürür.
+        /// Gets the singleton instance of the Configuration class.
         /// </summary>
-        /// <param name="key">Ayarın anahtarı (örn. ActiveFolder).</param>
-        /// <returns>Anahtara karşılık gelen yol değeri.</returns>
-        public string GetPath(string key)
-        {
-            try
-            {
-                return _settings?.Paths?[key]?.ToString() ?? string.Empty;
-            }
-            catch
-            {
-                Logger.Log($"'{key}' için ayar bulunamadı.");
-                return string.Empty;
-            }
-        }
+        public static Configuration Instance => _instance ??= new Configuration();
 
         /// <summary>
-        /// Zamanlayıcı ile ilgili ayarları döndürür.
+        /// Retrieves a path setting from the JSON configuration.
         /// </summary>
-        /// <param name="key">Ayarın anahtarı (örn. BackupIntervalInMinutes).</param>
-        /// <returns>Zamanlayıcı ayar değeri (dakika cinsinden).</returns>
-        public int GetTimer(string key)
-        {
-            try
-            {
-                return (int)(_settings?.Timers?[key] ?? 0);
-            }
-            catch
-            {
-                Logger.Log($"'{key}' için zamanlayıcı ayarı bulunamadı.");
-                return 0;
-            }
-        }
+        /// <param name="key">The key of the path setting (e.g., "ActiveFolder").</param>
+        /// <returns>The path value as a string.</returns>
+        public string GetPath(string key) => _settings?.Paths?[key]?.ToString() ?? string.Empty;
+
+        /// <summary>
+        /// Retrieves a timer setting in minutes from the JSON configuration.
+        /// </summary>
+        /// <param name="key">The key of the timer setting (e.g., "BackupIntervalInMinutes").</param>
+        /// <returns>The timer value as an integer.</returns>
+        public int GetTimer(string key) => (int)(_settings?.Timers?[key] ?? 0);
     }
 }
