@@ -1,6 +1,12 @@
+using System;
+using TaskSchedulerApp.Core;
+
 namespace TaskSchedulerApp.Utilities
 {
-    public class ConsoleNotifier : IBackupObserver
+    /// <summary>
+    /// Observer that writes notifications to the console.
+    /// </summary>
+    public class ConsoleNotifier : IObserver
     {
         public void Notify(string message)
         {

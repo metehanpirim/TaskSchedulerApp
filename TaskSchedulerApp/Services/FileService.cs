@@ -1,107 +1,65 @@
+using System;
 using System.IO;
-using TaskSchedulerApp.Utilities; // Logger'ı kullanmak için bu satırı ekleyin
+using System.Linq;
+using TaskSchedulerApp.Core;
 
 namespace TaskSchedulerApp.Services
 {
     /// <summary>
-    /// Dosya işlemleri için genel işlevleri içerir.
+    /// Service responsible for managing file operations in folders with observer notifications.
     /// </summary>
-    public class FileService
+    public class FileService : ObservableBase
     {
         /// <summary>
-        /// Belirtilen klasördeki tüm dosyaların bir listesini döndürür.
-        /// </summary>
-        public List<FileInfo> GetAllFiles(string folderPath)
-        {
-            try
-            {
-                return Directory.GetFiles(folderPath)
-                    .Select(f => new FileInfo(f))
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"'{folderPath}' klasöründeki dosyaları alırken hata: {ex.Message}");
-                return new List<FileInfo>();
-            }
-        }
-
-        /// <summary>
-        /// Belirli bir uzantıya sahip dosyaları döndürür.
-        /// </summary>
-        public List<FileInfo> GetFilesByExtension(string folderPath, string extension)
-        {
-            try
-            {
-                return Directory.GetFiles(folderPath, $"*{extension}")
-                    .Select(f => new FileInfo(f))
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"'{folderPath}' klasöründeki {extension} dosyalarını alırken hata: {ex.Message}");
-                return new List<FileInfo>();
-            }
-        }
-
-        /// <summary>
-        /// Belirtilen klasördeki belirli bir süreden eski dosyaları siler.
+        /// Deletes files older than the specified number of minutes in a folder.
         /// </summary>
         public void DeleteOldFiles(string folderPath, int minutesOld)
         {
+            DeleteFiles(folderPath, file =>
+                file.LastWriteTime < DateTime.Now.AddMinutes(-minutesOld),
+                $"Deleting files older than {minutesOld} minutes");
+        }
+
+        /// <summary>
+        /// Deletes all files except the most recent N files.
+        /// </summary>
+        public void DeleteFilesExceptRecent(string folderPath, int keepRecentCount)
+        {
+            var files = Directory.GetFiles(folderPath)
+                                 .Select(file => new FileInfo(file))
+                                 .OrderByDescending(file => file.LastWriteTime)
+                                 .ToList();
+
+            foreach (var file in files.Skip(keepRecentCount))
+            {
+                file.Delete();
+                NotifyObservers($"Deleted file: {file.Name}");
+            }
+        }
+
+        /// <summary>
+        /// Common logic for deleting files based on a condition.
+        /// </summary>
+        private void DeleteFiles(string folderPath, Func<FileInfo, bool> condition, string actionDescription)
+        {
+            Console.WriteLine(actionDescription);
+
             try
             {
-                var files = GetAllFiles(folderPath);
+                var files = Directory.GetFiles(folderPath)
+                                     .Select(file => new FileInfo(file))
+                                     .Where(condition)
+                                     .ToList();
+
                 foreach (var file in files)
                 {
-                    if (file.LastWriteTime < DateTime.Now.AddMinutes(-minutesOld))
-                    {
-                        Logger.Log($"Siliniyor: {file.Name}");
-                        file.Delete();
-                    }
-                }
-                Console.WriteLine($"'{folderPath}' içindeki {minutesOld} dakikadan eski dosyalar silindi.");
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"Dosyalar silinirken bir hata oluştu: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Belirli bir dosyayı başka bir klasöre kopyalar.
-        /// </summary>
-        public void CopyFile(string sourceFilePath, string destinationFolderPath)
-        {
-            try
-            {
-                string fileName = Path.GetFileName(sourceFilePath);
-                string destinationFilePath = Path.Combine(destinationFolderPath, fileName);
-                File.Copy(sourceFilePath, destinationFilePath, true);
-                Logger.Log($"Dosya başarıyla kopyalandı: {sourceFilePath} -> {destinationFilePath}");
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"Dosya kopyalanırken bir hata oluştu: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Belirtilen klasörün var olup olmadığını kontrol eder ve yoksa oluşturur.
-        /// </summary>
-        public void EnsureFolderExists(string folderPath)
-        {
-            try
-            {
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                    Logger.Log($"'{folderPath}' klasörü oluşturuldu.");
+                    file.Delete();
+                    NotifyObservers($"Deleted file: {file.Name}");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log($"Klasör oluşturulurken bir hata oluştu: {ex.Message}");
+                NotifyObservers($"Error deleting files: {ex.Message}");
             }
         }
     }

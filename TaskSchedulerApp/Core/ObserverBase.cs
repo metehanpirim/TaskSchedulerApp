@@ -1,12 +1,12 @@
-namespace TaskSchedulerApp.Utilities
+﻿namespace TaskSchedulerApp.Core
 {
     /// <summary>
-    /// Defines a contract for objects that observe and respond to notifications.
+    /// Interface for observers that react to notifications.
     /// </summary>
-    public interface IBackupObserver
+    public interface IObserver
     {
         /// <summary>
-        /// Method to handle notifications.
+        /// Notifies the observer with a message.
         /// </summary>
         /// <param name="message">The notification message.</param>
         void Notify(string message);
