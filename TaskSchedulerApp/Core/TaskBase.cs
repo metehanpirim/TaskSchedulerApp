@@ -34,6 +34,13 @@ namespace TaskSchedulerApp.Core
             IsRunning = false;
         }
 
+        protected TaskBase(Guid id, string name)
+        {
+            Id = id;
+            Name = name;
+            IsRunning = false;
+        }
+
         /// <summary>
         /// Starts the execution of the task.
         /// </summary>

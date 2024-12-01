@@ -17,7 +17,7 @@ namespace TaskSchedulerApp.Services
         /// Initializes the BackupService with an initial backup folder path.
         /// </summary>
         /// <param name="initialBackupFolderPath">The default backup folder path.</param>
-        public BackupService(string initialBackupFolderPath)
+        public BackupService(string initialBackupFolderPath = "DefaultBackupFolder")
         {
             _backupFolderPath = initialBackupFolderPath;
             FolderUtils.EnsureFolderExists(_backupFolderPath);

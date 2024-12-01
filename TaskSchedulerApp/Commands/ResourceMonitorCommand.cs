@@ -1,5 +1,6 @@
 ﻿using System;
 using TaskSchedulerApp.Core;
+using TaskSchedulerApp.Factories;
 using TaskSchedulerApp.Services;
 using TaskSchedulerApp.Tasks;
 
@@ -11,12 +12,12 @@ namespace TaskSchedulerApp.Commands
     public class ResourceMonitorCommand : ICommand
     {
         private readonly TaskManager _taskManager;
-        private readonly ResourceMonitorService _monitorService;
+        private readonly ResourceMonitorServiceFactory _factory;
 
-        public ResourceMonitorCommand(TaskManager taskManager, ResourceMonitorService monitorService)
+        public ResourceMonitorCommand(TaskManager taskManager, ResourceMonitorServiceFactory factory)
         {
             _taskManager = taskManager;
-            _monitorService = monitorService;
+            _factory = factory;
         }
 
         public void Execute()
@@ -47,7 +48,7 @@ namespace TaskSchedulerApp.Commands
             Console.Write("Enter monitoring interval in seconds: ");
             if (int.TryParse(Console.ReadLine(), out int intervalInSeconds))
             {
-                var task = new ResourceMonitorTask("Resource Monitor Task", _monitorService, cpuThreshold, ramThreshold, email!, intervalInSeconds);
+                var task = new ResourceMonitorTask("Resource Monitor Task", _factory.Create(), cpuThreshold, ramThreshold, email!, intervalInSeconds);
                 _taskManager.AddTask(task);
 
                 // Run StartTask in a background thread

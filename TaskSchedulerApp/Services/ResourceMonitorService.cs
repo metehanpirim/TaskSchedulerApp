@@ -31,7 +31,7 @@ namespace TaskSchedulerApp.Services
         {
             var cpuUsage = GetCpuUsage();
             var ramUsage = GetRamUsage();
-            var machineName = Environment.MachineName; Environment.GetEnvironmentVariables
+            var machineName = Environment.MachineName;
 
             if (cpuUsage > cpuThreshold)
             {

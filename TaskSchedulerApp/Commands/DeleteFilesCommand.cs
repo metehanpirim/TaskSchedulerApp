@@ -1,5 +1,6 @@
 using System;
 using TaskSchedulerApp.Core;
+using TaskSchedulerApp.Factories;
 using TaskSchedulerApp.Services;
 using TaskSchedulerApp.Tasks;
 
@@ -11,12 +12,12 @@ namespace TaskSchedulerApp.Commands
     public class DeleteFilesCommand : ICommand
     {
         private readonly TaskManager _taskManager;
-        private readonly FileService _fileService;
+        private readonly FileServiceFactory _factory;
 
-        public DeleteFilesCommand(TaskManager taskManager, FileService fileService)
+        public DeleteFilesCommand(TaskManager taskManager, FileServiceFactory factory)
         {
             _taskManager = taskManager;
-            _fileService = fileService;
+            _factory = factory;
         }
 
         public void Execute()
@@ -37,7 +38,7 @@ namespace TaskSchedulerApp.Commands
                     Console.Write("Enter cleanup interval in minutes: ");
                     if (int.TryParse(Console.ReadLine(), out int intervalInMinutes))
                     {
-                        var task = new DeleteFilesTask("Delete Old Files Task", _fileService, folderPath!, intervalInMinutes, minutesOld);
+                        var task = new DeleteFilesTask("Delete Old Files Task", _factory.Create(), folderPath!, intervalInMinutes, minutesOld);
                         _taskManager.AddTask(task);
 
                         // Run StartTask in a background thread
@@ -61,7 +62,7 @@ namespace TaskSchedulerApp.Commands
                     Console.Write("Enter cleanup interval in minutes: ");
                     if (int.TryParse(Console.ReadLine(), out int intervalInMinutes))
                     {
-                        var task = new DeleteFilesTask("Delete Files Task", _fileService, folderPath!, intervalInMinutes, keepRecentCount: keepRecentCount);
+                        var task = new DeleteFilesTask("Delete Files Task", _factory.Create(), folderPath!, intervalInMinutes, keepRecentCount: keepRecentCount);
                         _taskManager.AddTask(task);
 
                         // Run StartTask in a background thread

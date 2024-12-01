@@ -1,5 +1,6 @@
 using System;
 using TaskSchedulerApp.Core;
+using TaskSchedulerApp.Factories;
 using TaskSchedulerApp.Services;
 using TaskSchedulerApp.Tasks;
 
@@ -11,12 +12,12 @@ namespace TaskSchedulerApp.Commands
     public class BackupCommand : ICommand
     {
         private readonly TaskManager _taskManager;
-        private readonly BackupService _backupService;
+        private readonly BackupServiceFactory _factory;
 
-        public BackupCommand(TaskManager taskManager, BackupService backupService)
+        public BackupCommand(TaskManager taskManager, BackupServiceFactory factory)
         {
             _taskManager = taskManager;
-            _backupService = backupService;
+            _factory = factory;
         }
 
         public void Execute()
@@ -43,8 +44,8 @@ namespace TaskSchedulerApp.Commands
                 return;
             }
 
-            // Update BackupService with the new backup folder path
-            _backupService.SetBackupFolderPath(backupFolderPath);
+            var backupService = _factory.Create();
+            backupService.SetBackupFolderPath(backupFolderPath);
 
             // Get the backup interval in minutes
             Console.Write("Enter backup interval in minutes: ");
@@ -55,7 +56,7 @@ namespace TaskSchedulerApp.Commands
             }
 
             // Create and start the backup task
-            var task = new BackupTask("Backup Task", _backupService, sourceFolderPath, backupFolderPath, intervalInMinutes);
+            var task = new BackupTask("Backup Task", backupService, sourceFolderPath, backupFolderPath, intervalInMinutes);
             _taskManager.AddTask(task);
 
             // Start the task in the background

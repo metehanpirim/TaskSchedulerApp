@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Threading.Tasks;
 using TaskSchedulerApp.Core;
 using TaskSchedulerApp.Services;
@@ -10,11 +11,15 @@ namespace TaskSchedulerApp.Tasks
     /// </summary>
     public class ResourceMonitorTask : TaskBase
     {
-        private readonly ResourceMonitorService _monitorService;
-        private readonly double _cpuThreshold;
-        private readonly double _ramThreshold;
-        private readonly string _email;
-        private readonly int _intervalInSeconds;
+        public ResourceMonitorService _monitorService;
+
+        [JsonProperty] private readonly double _cpuThreshold;
+
+        [JsonProperty] private readonly double _ramThreshold;
+
+        [JsonProperty] private readonly string _email;
+
+        [JsonProperty] private readonly int _intervalInSeconds;
 
         /// <summary>
         /// Initializes a new resource monitor task.
@@ -33,6 +38,20 @@ namespace TaskSchedulerApp.Tasks
             _ramThreshold = ramThreshold;
             _email = email;
             _intervalInSeconds = intervalInSeconds;
+        }
+
+        /// <summary>
+        /// Constructor for deserialization.
+        /// </summary>
+        [JsonConstructor]
+        private ResourceMonitorTask(string name, ResourceMonitorService monitorService, Guid id, double cpuThreshold, double ramThreshold, string email, int intervalInSeconds)
+            : base(id, name)
+        {
+            _cpuThreshold = cpuThreshold;
+            _ramThreshold = ramThreshold;
+            _email = email;
+            _intervalInSeconds = intervalInSeconds;
+            _monitorService = monitorService;
         }
 
         /// <summary>
@@ -58,7 +77,7 @@ namespace TaskSchedulerApp.Tasks
             // RAM threshold check
             if (_ramThreshold <= 100)
                 details += $", RAM Threshold: {_ramThreshold}%";
-            
+
             details += $", Email: {_email}, Interval: {_intervalInSeconds} seconds";
 
             return details;

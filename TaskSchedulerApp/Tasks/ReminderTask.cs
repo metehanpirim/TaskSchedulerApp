@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Threading.Tasks;
 using TaskSchedulerApp.Core;
 using TaskSchedulerApp.Services;
@@ -11,11 +12,11 @@ namespace TaskSchedulerApp.Tasks
     /// </summary>
     public class ReminderTask : TaskBase
     {
-        private readonly MailService _mailService;
-        private readonly string _email;
-        private readonly string _subject;
-        private readonly string _body;
-        private readonly TimeSpan _reminderTime;
+        public MailService _mailService;
+        [JsonProperty] private readonly string _email;
+        [JsonProperty] private readonly string _subject;
+        [JsonProperty] private readonly string _body;
+        [JsonProperty] private readonly TimeSpan _reminderTime;
 
         /// <summary>
         /// Initializes a new reminder task.
@@ -28,6 +29,21 @@ namespace TaskSchedulerApp.Tasks
         /// <param name="reminderTime">The time of day to send the reminder.</param>
         public ReminderTask(string name, MailService mailService, string email, string subject, string body, TimeSpan reminderTime)
             : base(name)
+        {
+            _mailService = mailService;
+            _email = email;
+            _subject = subject;
+            _body = body;
+            _reminderTime = reminderTime;
+        }
+
+
+        /// <summary>
+        /// Constructor for deserialization.
+        /// </summary>
+        [JsonConstructor]
+        public ReminderTask(string name, MailService mailService, Guid id, string email, string subject, string body, TimeSpan reminderTime)
+            : base(id, name)
         {
             _mailService = mailService;
             _email = email;

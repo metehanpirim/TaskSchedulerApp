@@ -1,5 +1,7 @@
-﻿using TaskSchedulerApp.Commands;
+﻿using Microsoft.Extensions.DependencyInjection;
+using TaskSchedulerApp.Commands;
 using TaskSchedulerApp.Core;
+using TaskSchedulerApp.Factories;
 using TaskSchedulerApp.Services;
 using TaskSchedulerApp.Utilities;
 
@@ -7,73 +9,88 @@ namespace TaskSchedulerApp.Initializers
 {
     public class AppInitializer
     {
-        public MailService MailService { get; private set; }
-        public BackupService BackupService { get; private set; }
-        public FileService FileService { get; private set; }
-        public ResourceMonitorService ResourceMonitorService { get; private set; }
-        public TaskManager TaskManager { get; private set; }
-
-        public ICommand BackupCommand { get; private set; }
-        public ICommand DeleteFilesCommand { get; private set; }
-        public ICommand ResourceMonitorCommand { get; private set; }
-        public ICommand ReminderCommand { get; private set; }
+        public ServiceProvider ServiceProvider { get; private set; }
 
         public AppInitializer()
         {
-            // Initialize MailService with Gmail SMTP configuration
-            MailService = new MailService("smtp.gmail.com", 587, "dptaskscheduler@gmail.com", "xdsiturnhvvviibk");
+            var serviceCollection = new ServiceCollection();
 
-            // Initialize services
-            BackupService = new BackupService("DefaultBackupFolder");
-            FileService = new FileService();
-            ResourceMonitorService = new ResourceMonitorService(MailService);
+            serviceCollection.AddSingleton<TaskManager>();
 
-            // Attach observers
-            SetupNotifiers(BackupService, FileService, MailService);
+            // Register factories
+            RegisterFactories(serviceCollection);
 
-            // Initialize TaskManager
-            TaskManager = new TaskManager();
+            // Register observers
+            RegisterObservers(serviceCollection);
 
-            // Initialize commands
-            BackupCommand = new BackupCommand(TaskManager, BackupService);
-            DeleteFilesCommand = new DeleteFilesCommand(TaskManager, FileService);
-            ResourceMonitorCommand = new ResourceMonitorCommand(TaskManager, ResourceMonitorService);
-            ReminderCommand = new ReminderCommand(TaskManager, MailService);
+            // Register commands
+            RegisterCommands(serviceCollection);
+
+            // Build service provider
+            ServiceProvider = serviceCollection.BuildServiceProvider();
         }
 
-        /// <summary>
-        /// Sets up notifiers for services based on user preferences.
-        /// </summary>
-        private void SetupNotifiers(BackupService backupService, FileService fileService, MailService mailService)
+        private void RegisterFactories(IServiceCollection services)
         {
-            var consoleNotifier = new ConsoleNotifier();
-            backupService.AddObserver(consoleNotifier);
-            fileService.AddObserver(consoleNotifier);
+            services.AddScoped<BackupServiceFactory>();
+            services.AddScoped<FileServiceFactory>();
+            services.AddScoped<ResourceMonitorServiceFactory>();
 
-            Console.Write("Would you like to receive email notifications? (yes/no): ");
-            string? emailNotificationChoice = Console.ReadLine()?.Trim().ToLower();
+            services.AddSingleton<MailService>(sp =>
+                new MailService("smtp.gmail.com", 587, "dptaskscheduler@gmail.com", "xdsiturnhvvviibk"));
+        }
 
-            if (emailNotificationChoice == "yes")
+        private void RegisterObservers(IServiceCollection services)
+        {
+            services.AddSingleton<ConsoleNotifier>();
+
+            Console.Write("Would you like to enable email notifications? (yes/no): ");
+            string? choice = Console.ReadLine()?.Trim().ToLower();
+
+            if (choice == "yes")
             {
                 Console.Write("Enter the email address to receive notifications: ");
-                string? recipientEmail = Console.ReadLine()?.Trim();
+                string? email = Console.ReadLine()?.Trim();
 
-                if (string.IsNullOrWhiteSpace(recipientEmail))
+                if (!string.IsNullOrWhiteSpace(email))
                 {
-                    Console.WriteLine("Invalid email address. Skipping email notifications.");
-                }
-                else
-                {
-                    var mailNotifier = new MailNotifier(mailService, recipientEmail);
-                    backupService.AddObserver(mailNotifier);
-                    fileService.AddObserver(mailNotifier);
-                    Console.WriteLine($"Email notifications will be sent to: {recipientEmail}");
+                    services.AddSingleton<MailNotifier>(sp =>
+                    {
+                        var mailService = sp.GetRequiredService<MailService>();
+                        return new MailNotifier(mailService, email);
+
+                    });
                 }
             }
-            else
-            {
-                Console.WriteLine("Email notifications are disabled.");
-            }
+            
+        }
+
+        private void RegisterCommands(IServiceCollection services)
+        {
+            services.AddSingleton<BackupCommand>();
+            services.AddSingleton<DeleteFilesCommand>();
+            services.AddSingleton<ResourceMonitorCommand>();
+            services.AddSingleton<ReminderCommand>();
+        }
+
+        public T GetCommand<T>() where T : class
+        {
+            return ServiceProvider.GetRequiredService<T>();
+        }
+
+        public BackupService CreateBackupService()
+        {
+            return ServiceProvider.GetRequiredService<BackupServiceFactory>().Create();
+        }
+
+        public FileService CreateFileService()
+        {
+            return ServiceProvider.GetRequiredService<FileServiceFactory>().Create();
+        }
+
+        public ResourceMonitorService CreateResourceMonitorService()
+        {
+            return ServiceProvider.GetRequiredService<ResourceMonitorServiceFactory>().Create();
         }
     }
 }

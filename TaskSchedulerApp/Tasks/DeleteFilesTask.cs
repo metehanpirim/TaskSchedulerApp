@@ -1,4 +1,6 @@
+using Newtonsoft.Json;
 using System;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using TaskSchedulerApp.Core;
 using TaskSchedulerApp.Services;
@@ -10,11 +12,11 @@ namespace TaskSchedulerApp.Tasks
     /// </summary>
     public class DeleteFilesTask : TaskBase
     {
-        private readonly FileService _fileService;
-        private readonly string _folderPath;
-        private readonly int _intervalInMinutes;
-        private readonly int? _minutesOld;
-        private readonly int? _keepRecentCount;
+        public FileService _fileService;
+        [JsonProperty] private readonly string _folderPath;
+        [JsonProperty] private readonly int _intervalInMinutes;
+        [JsonProperty] private readonly int? _minutesOld;
+        [JsonProperty] private readonly int? _keepRecentCount;
 
         /// <summary>
         /// Initializes a new delete files task.
@@ -27,6 +29,21 @@ namespace TaskSchedulerApp.Tasks
         /// <param name="keepRecentCount">The number of recent files to keep.</param>
         public DeleteFilesTask(string name, FileService fileService, string folderPath, int intervalInMinutes, int? minutesOld = null, int? keepRecentCount = null)
             : base(name)
+        {
+            _fileService = fileService;
+            _folderPath = folderPath;
+            _intervalInMinutes = intervalInMinutes;
+            _minutesOld = minutesOld;
+            _keepRecentCount = keepRecentCount;
+        }
+
+
+        /// <summary>
+        /// Constructor for deserialization.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonConstructor]
+        public DeleteFilesTask(string name, FileService fileService, Guid id, string folderPath, int intervalInMinutes, int? minutesOld = null, int? keepRecentCount = null)
+            : base(id, name)
         {
             _fileService = fileService;
             _folderPath = folderPath;

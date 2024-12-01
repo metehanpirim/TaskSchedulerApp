@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Threading.Tasks;
 using TaskSchedulerApp.Core;
 using TaskSchedulerApp.Services;
@@ -10,10 +11,10 @@ namespace TaskSchedulerApp.Tasks
     /// </summary>
     public class BackupTask : TaskBase
     {
-        private readonly BackupService _backupService;
-        private readonly string _sourceFolderPath;
-        private readonly string _backupFolderPath;
-        private readonly int _intervalInMinutes;
+        public BackupService _backupService;
+        [JsonProperty] private readonly string _sourceFolderPath;
+        [JsonProperty] private readonly string _backupFolderPath;
+        [JsonProperty] private readonly int _intervalInMinutes;
 
         /// <summary>
         /// Initializes a new backup task.
@@ -24,6 +25,20 @@ namespace TaskSchedulerApp.Tasks
         /// <param name="intervalInMinutes">The backup interval in minutes.</param>
         public BackupTask(string name, BackupService backupService, string sourceFolderPath, string backupFolderPath, int intervalInMinutes)
             : base(name)
+        {
+            _backupService = backupService;
+            _sourceFolderPath = sourceFolderPath;
+            _intervalInMinutes = intervalInMinutes;
+            _backupFolderPath = backupFolderPath;
+        }
+
+
+        /// <summary>
+        /// Constructor for deserialization.
+        /// </summary>
+        [JsonConstructor]
+        public BackupTask(string name, BackupService backupService, Guid id, string sourceFolderPath, string backupFolderPath, int intervalInMinutes)
+            : base(id, name)
         {
             _backupService = backupService;
             _sourceFolderPath = sourceFolderPath;
