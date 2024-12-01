@@ -31,24 +31,27 @@ namespace TaskSchedulerApp.Services
         {
             var cpuUsage = GetCpuUsage();
             var ramUsage = GetRamUsage();
+            var machineName = Environment.MachineName; Environment.GetEnvironmentVariables
 
             if (cpuUsage > cpuThreshold)
             {
                 Logger.Log($"CPU usage exceeded: {cpuUsage}%");
-                _mailService.SendMail(email, "CPU Usage Alert", $"CPU usage is at {cpuUsage}%");
+                _mailService.SendMail(email, "CPU Usage Alert", $"CPU usage is at {cpuUsage}% on {machineName}");
             }
 
             if (ramUsage > ramThreshold)
             {
                 Logger.Log($"RAM usage exceeded: {ramUsage}%");
-                _mailService.SendMail(email, "RAM Usage Alert", $"RAM usage is at {ramUsage}%");
+                _mailService.SendMail(email, "RAM Usage Alert", $"RAM usage is at {ramUsage}% on {machineName}");
             }
         }
 
         private double GetCpuUsage()
         {
-            var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            return Math.Round(cpuCounter.NextValue(), 2);
+            using var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            cpuCounter.NextValue(); // İlk değeri al ve atla
+            System.Threading.Thread.Sleep(500); // 500 ms bekle
+            return Math.Round(cpuCounter.NextValue(), 2); // Gerçek CPU kullanımını ölç
         }
 
         private double GetRamUsage()

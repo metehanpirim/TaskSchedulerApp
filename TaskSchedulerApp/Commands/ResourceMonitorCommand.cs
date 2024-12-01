@@ -27,7 +27,7 @@ namespace TaskSchedulerApp.Commands
             Console.WriteLine("3. Both");
             string? choice = Console.ReadLine();
 
-            double cpuThreshold = 0, ramThreshold = 0;
+            double cpuThreshold = 101, ramThreshold = 101;
 
             if (choice == "1" || choice == "3")
             {
@@ -44,10 +44,10 @@ namespace TaskSchedulerApp.Commands
             Console.Write("Enter the email address for notifications: ");
             string? email = Console.ReadLine();
 
-            Console.Write("Enter monitoring interval in minutes: ");
-            if (int.TryParse(Console.ReadLine(), out int intervalInMinutes))
+            Console.Write("Enter monitoring interval in seconds: ");
+            if (int.TryParse(Console.ReadLine(), out int intervalInSeconds))
             {
-                var task = new ResourceMonitorTask("Resource Monitor Task", _monitorService, cpuThreshold, ramThreshold, email!, intervalInMinutes);
+                var task = new ResourceMonitorTask("Resource Monitor Task", _monitorService, cpuThreshold, ramThreshold, email!, intervalInSeconds);
                 _taskManager.AddTask(task);
 
                 // Run StartTask in a background thread
