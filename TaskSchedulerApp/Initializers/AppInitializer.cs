@@ -32,7 +32,7 @@ namespace TaskSchedulerApp.Initializers
             SetupNotifiers(BackupService, FileService, MailService);
 
             // Initialize TaskManager
-            TaskManager = new TaskManager();
+            TaskManager = TaskManager.Instance;
 
             // Initialize commands
             BackupCommand = new BackupCommand(TaskManager, BackupService);

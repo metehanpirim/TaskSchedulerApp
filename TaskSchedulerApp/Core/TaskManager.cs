@@ -9,15 +9,21 @@ namespace TaskSchedulerApp.Core
     /// </summary>
     public class TaskManager
     {
+        private static readonly Lazy<TaskManager> _instance = new(() => new TaskManager());
         private readonly List<TaskBase> _tasks;
 
         /// <summary>
-        /// Constructor to initialize the TaskManager.
+        /// Private constructor to prevent external instantiation.
         /// </summary>
-        public TaskManager()
+        private TaskManager()
         {
             _tasks = new List<TaskBase>();
         }
+
+        /// <summary>
+        /// Gets the single instance of TaskManager.
+        /// </summary>
+        public static TaskManager Instance => _instance.Value;
 
         /// <summary>
         /// Adds a new task to the manager.
